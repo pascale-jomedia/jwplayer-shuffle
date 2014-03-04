@@ -1,0 +1,32 @@
+<script src="http://jwpsrv.com/library/mGczSqAREeOWJSIACmOLpg.js"></script>
+
+<div id="player"></div>
+
+<script type="text/javascript">
+  jwplayer('player').setup({
+    playlist: [
+      {
+        file: 'https://s3.amazonaws.com/jomedia-jwplayer/samples/big-buck-bunny.mp4'
+      },
+      {
+        file: 'https://s3.amazonaws.com/jomedia-jwplayer/samples/elephants-dream.mp4'
+      },
+      {
+        file: 'https://s3.amazonaws.com/jomedia-jwplayer/samples/sintel.mp4'
+      },
+      {
+        file: 'https://s3.amazonaws.com/jomedia-jwplayer/samples/tears-of-steel.mp4'
+      }
+    ],
+    plugins: {
+      '../jwplayer.shuffle.min.js': {
+        autostart: true,
+        maxindices: 5,
+        shuffle: true
+      }
+    },
+    repeat: true
+  }).addButton("shuffle.png", "Shuffle", function(evt) {
+    toggleShuffle();
+  }, "jwplayer-shuffle");
+</script>
