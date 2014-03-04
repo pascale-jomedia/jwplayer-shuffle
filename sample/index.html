@@ -19,14 +19,21 @@
       }
     ],
     plugins: {
-      '../jwplayer.shuffle.min.js': {
+      '../jwplayer.shuffle.js': {
         autostart: true,
-        maxindices: 5,
+        repeatplaylist: true,
         shuffle: true
       }
     },
     repeat: true
-  }).addButton("shuffle.png", "Shuffle", function() {
-    toggleShuffle();
+  });
+
+  jwplayer('player').addButton("shuffle.png", "Shuffle", function() {
+    shuffle_setShuffle();
   }, "jwplayer-shuffle");
+
+  jwplayer('player').addButton("repeat.png", "Repeat", function() {
+    shuffle_setRepeatPlaylist();
+  }, "jwplayer-repeat");
+
 </script>

@@ -9,44 +9,68 @@
 
     var template = function(player, config, div) {
 
-        // Default auto start is false.
+        // Check if the player will auto start. Default is `false`.
         var autoStart = config.autostart || false;
 
-        // Default maximum of indices is 100.
-        var maxIndices = config.maxindices || 100;
+        // Check if the player will repeat the playlist. Default is `false`.
+        var repeatPlaylist = config.repeatplaylist || false;
 
-        // Default shuffle mode is false.
+        // Check if the player will shuffle. Default is `false`.
         var shuffle = config.shuffle || false;
 
-        var lastIndex = -1,
-            lastIndices = new Array();
+        var forceStandardBehavior = false,
+            lastIndex = -1,
+            lastIndices = new Array(),
+            playlistLength,
+            shallPause = false;
 
-        player.onPlaylistItem(
+        player.onPlaylist(
+            function() {
+                playlistLength = player.getPlaylist().length;
+            }
+        ).onPlaylistItem(
             function(evt) {
 
-                if (!shuffle) {
+                if (forceStandardBehavior) {
+                    // Force the one-time standard behavior.
+                    forceStandardBehavior = false;
+
+                } else if (!shuffle) {
                     // If it isn't shuffle mode, have standard behavior.
+                    if (!repeatPlaylist && lastIndex == playlistLength - 1) {
+                        shallPause = true;
+                    }
+                    lastIndex = evt.index;
 
                 } else if (!autoStart) {
                     // Don't auto start on page load.
+                    lastIndex = evt.index;
+                    if (shuffle) {
+                        lastIndices.push(lastIndex);
+                    }
                     autoStart = true;
 
-                } else if ((lastIndex - evt.index) == -1 || (lastIndex - evt.index + 1) == player.getPlaylist().length) {
+                } else if ((lastIndex - evt.index) == -1 || (lastIndex - evt.index + 1) == playlistLength) {
                     // Next button and complete event.
 
-                    // Play a random index.
-                    lastIndex = Math.floor(Math.random() * player.getPlaylist().length);
+                    if (lastIndices.length == playlistLength) {
+                        // Playlist is completed.
+                        lastIndices.length = 0;
+                        if (!repeatPlaylist) {
+                            shallPause = true;
+                        }
+                    }
+
+                    // Play a random index, not played before.
+                    do {
+                        lastIndex = Math.floor(Math.random() * playlistLength);
+                    } while (lastIndices.indexOf(lastIndex) != -1)
                     lastIndices.push(lastIndex);
                     player.playlistItem(lastIndex);
 
-                    if (lastIndices.length > maxIndices) {
-                        // Splice the array if too long.
-                        lastIndices.splice(0, 1);
-                    }
-
                     // console.log('Next button. lastIndices: ' + lastIndices);
 
-                } else if ((lastIndex - evt.index) == 1 || (evt.index - lastIndex + 1) == player.getPlaylist().length) {
+                } else if ((lastIndex - evt.index) == 1 || (evt.index - lastIndex + 1) == playlistLength) {
                     // Previous button.
 
                     lastIndex = lastIndices.pop();
@@ -57,17 +81,65 @@
                         // Otherwise, have standard behavior.
                         lastIndex = evt.index;
                     }
+
                     // console.log('Previous button. lastIndices: ' + lastIndices);
 
                 }
 
             }
+        ).onPlay(
+            function() {
+                if (shallPause) {
+                    player.pause(true);
+                    shallPause = false;
+                }
+            }
         );
 
         /**
-         * Toggle the shuffle mode.
+         * Start playback of the playlist item at the specified index.
+         *
+         * @param index int the index
          */
-        toggleShuffle = function() {
+        shuffle_playlistItem = function(index) {
+
+            lastIndices.length = 0; // Empty the array.
+            forceStandardBehavior = true;
+
+            lastIndex = index;
+            if (shuffle) {
+                lastIndices.push(lastIndex);
+            }
+
+            player.playlistItem(index);
+
+            // console.log('playlistItem: ' + index);
+
+        }
+
+        /**
+         * If no argument, toggle the repeat playlist mode; otherwise set it at the specified value.
+         *
+         * @param newRepeatPlaylist boolean the new repeat playlist value
+         */
+        shuffle_setRepeatPlaylist = function(newRepeatPlaylist) {
+            if (newRepeatPlaylist && newRepeatPlaylist == repeatPlaylist) {
+                return;
+            }
+            repeatPlaylist = !repeatPlaylist;
+            // console.log('repeatPlaylist: ' + repeatPlaylist);
+        }
+
+        /**
+         * If no argument, toggle the shuffle mode; otherwise set it at the specified value.
+         * Empty the array related to the indices to remember.
+         *
+         * @param newShuffle boolean the new shuffle value
+         */
+        shuffle_setShuffle = function(newShuffle) {
+            if (newShuffle && newShuffle == shuffle) {
+                return;
+            }
             shuffle = !shuffle;
             lastIndices.length = 0; // Empty the array.
             // console.log('shuffle: ' + shuffle);
