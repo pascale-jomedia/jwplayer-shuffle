@@ -5,9 +5,11 @@
  *
  * @version 0.1
  */
+
+var shuffle_playlistItem, shuffle_setRepeatPlaylist, shuffle_setShuffle;
 (function(jwplayer) {
 
-    var template = function(player, config, div) {
+    var template = function(player, config) {
 
         // Check if the player will auto start. Default is `false`.
         var autoStart = config.autostart || false;
@@ -20,26 +22,25 @@
 
         var forceStandardBehavior = false,
             lastIndex = -1,
-            lastIndices = new Array(),
-            playlistLength,
-            shallPause = false;
+            lastIndices = [],
+            playlistLength;
 
         player.onPlaylist(
             function() {
                 playlistLength = player.getPlaylist().length;
             }
-        ).onPlaylistItem(
+        );
+
+        player.onPlaylistItem(
             function(evt) {
 
                 if (forceStandardBehavior) {
                     // Force the one-time standard behavior.
+                    lastIndex = evt.index;
                     forceStandardBehavior = false;
 
                 } else if (!shuffle) {
                     // If it isn't shuffle mode, have standard behavior.
-                    if (!repeatPlaylist && lastIndex == playlistLength - 1) {
-                        shallPause = true;
-                    }
                     lastIndex = evt.index;
 
                 } else if (!autoStart) {
@@ -50,27 +51,24 @@
                     }
                     autoStart = true;
 
-                } else if ((lastIndex - evt.index) == -1 || (lastIndex - evt.index + 1) == playlistLength) {
+                } else if ((lastIndex - evt.index) == -1 || (lastIndex - evt.index + 1) >= playlistLength) {
                     // Next button and complete event.
 
-                    if (lastIndices.length == playlistLength) {
+                    if (lastIndices.length >= playlistLength) {
                         // Playlist is completed.
                         lastIndices.length = 0;
-                        if (!repeatPlaylist) {
-                            shallPause = true;
-                        }
                     }
 
                     // Play a random index, not played before.
                     do {
                         lastIndex = Math.floor(Math.random() * playlistLength);
-                    } while (lastIndices.indexOf(lastIndex) != -1)
+                    } while (lastIndices.indexOf(lastIndex) > -1);
                     lastIndices.push(lastIndex);
                     player.playlistItem(lastIndex);
 
                     // console.log('Next button. lastIndices: ' + lastIndices);
 
-                } else if ((lastIndex - evt.index) == 1 || (evt.index - lastIndex + 1) == playlistLength) {
+                } else if ((lastIndex - evt.index) == 1 || (evt.index - lastIndex + 1) >= playlistLength) {
                     // Previous button.
 
                     lastIndex = lastIndices.pop();
@@ -87,12 +85,21 @@
                 }
 
             }
-        ).onPlay(
+        );
+
+        player.onComplete(
             function() {
-                if (shallPause) {
-                    player.pause(true);
-                    shallPause = false;
+                if (shuffle && lastIndices.length >= playlistLength) {
+                    // Playlist is completed.
+                    lastIndices.length = 0;
+                    if (!repeatPlaylist) {
+                        lastIndices.push(lastIndex);
+                        player.stop();
+                    }
+                } else if (!shuffle && repeatPlaylist || shuffle) {
+                    player.playlistItem(0);
                 }
+
             }
         );
 
@@ -115,7 +122,7 @@
 
             // console.log('playlistItem: ' + index);
 
-        }
+        };
 
         /**
          * If no argument, toggle the repeat playlist mode; otherwise set it at the specified value.
@@ -128,7 +135,7 @@
             }
             repeatPlaylist = !repeatPlaylist;
             // console.log('repeatPlaylist: ' + repeatPlaylist);
-        }
+        };
 
         /**
          * If no argument, toggle the shuffle mode; otherwise set it at the specified value.
@@ -143,7 +150,7 @@
             shuffle = !shuffle;
             lastIndices.length = 0; // Empty the array.
             // console.log('shuffle: ' + shuffle);
-        }
+        };
 
     };
 

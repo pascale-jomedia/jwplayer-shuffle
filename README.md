@@ -23,7 +23,7 @@ Functions (they all start with `shuffle_` to avoid conflict with your code):
 
 Make sure you have a valid JWPlayer.
 
-In your player configuration options, I highly recommend you to set `repeat: true`.
+In your player configuration options, I highly recommend you not to set `repeat` (default is `false`).
 Please use the `repeatplaylist` in the plugin configuration options.
 If you don't, you will have unexpected behavior of the plugin.
 
