@@ -6,13 +6,16 @@
  * @version 0.1
  */
 
-var shuffle_playlistItem, shuffle_setRepeatPlaylist, shuffle_setShuffle;
+var shuffle_playlistItem, shuffle_setRepeatElement, shuffle_setRepeatPlaylist, shuffle_setShuffle;
 (function(jwplayer) {
 
     var template = function(player, config) {
 
         // Check if the player will auto start. Default is `false`.
         var autoStart = config.autostart || false;
+
+        // Check if the player will repeat the element (song / video). Default is `false`.
+        var repeatElement = config.repeatelement || false;
 
         // Check if the player will repeat the playlist. Default is `false`.
         var repeatPlaylist = config.repeatplaylist || false;
@@ -89,7 +92,9 @@ var shuffle_playlistItem, shuffle_setRepeatPlaylist, shuffle_setShuffle;
 
         player.onComplete(
             function() {
-                if (shuffle && lastIndices.length >= playlistLength) {
+                if (repeatElement) {
+                    player.seek(0);
+                } else if (shuffle && lastIndices.length >= playlistLength) {
                     // Playlist is completed.
                     lastIndices.length = 0;
                     if (!repeatPlaylist) {
@@ -99,7 +104,6 @@ var shuffle_playlistItem, shuffle_setRepeatPlaylist, shuffle_setShuffle;
                 } else if (!shuffle && repeatPlaylist || shuffle) {
                     player.playlistItem(0);
                 }
-
             }
         );
 
@@ -122,6 +126,19 @@ var shuffle_playlistItem, shuffle_setRepeatPlaylist, shuffle_setShuffle;
 
             // console.log('playlistItem: ' + index);
 
+        };
+
+        /**
+         * If no argument, toggle the repeat element mode; otherwise set it at the specified value.
+         *
+         * @param newRepeatElement boolean the new repeat element value
+         */
+        shuffle_setRepeatElement = function(newRepeatElement) {
+            if (newRepeatElement && newRepeatElement == repeatElement) {
+                return;
+            }
+            repeatElement = !repeatElement;
+            // console.log('repeatElement: ' + repeatElement);
         };
 
         /**
