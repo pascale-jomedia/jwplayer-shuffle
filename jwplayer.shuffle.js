@@ -94,14 +94,16 @@ var shuffle_playlistItem, shuffle_setRepeatElement, shuffle_setRepeatPlaylist, s
             function() {
                 if (repeatElement) {
                     player.seek(0);
-                } else if (shuffle && lastIndices.length >= playlistLength) {
-                    // Playlist is completed.
+                } else if (lastIndices.length >= playlistLength && shuffle) {
+                    // Playlist is completed under shuffle mode.
                     lastIndices.length = 0;
                     if (!repeatPlaylist) {
                         lastIndices.push(lastIndex);
                         player.stop();
+                    } else if (player.getPlaylistIndex() >= (playlistLength - 1)) {
+                        player.playlistItem(0);
                     }
-                } else if (!shuffle && repeatPlaylist || shuffle) {
+                } else if (player.getPlaylistIndex() >= (playlistLength - 1) && (!shuffle && repeatPlaylist || shuffle)) {
                     player.playlistItem(0);
                 }
             }
