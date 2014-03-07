@@ -6,7 +6,7 @@
  * @version 0.1
  */
 
-var shuffle_playlistItem, shuffle_setRepeatElement, shuffle_setRepeatPlaylist, shuffle_setShuffle;
+var shuffle_playlistItem, shuffle_setRepeatItem, shuffle_setRepeatPlaylist, shuffle_setShuffle;
 (function(jwplayer) {
 
     var template = function(player, config) {
@@ -14,8 +14,8 @@ var shuffle_playlistItem, shuffle_setRepeatElement, shuffle_setRepeatPlaylist, s
         // Check if the player will auto start. Default is `false`.
         var autoStart = config.autostart || false;
 
-        // Check if the player will repeat the element (song / video). Default is `false`.
-        var repeatElement = config.repeatelement || false;
+        // Check if the player will repeat the item. Default is `false`.
+        var repeatItem = config.repeatitem || false;
 
         // Check if the player will repeat the playlist. Default is `false`.
         var repeatPlaylist = config.repeatplaylist || false;
@@ -29,12 +29,28 @@ var shuffle_playlistItem, shuffle_setRepeatElement, shuffle_setRepeatPlaylist, s
             playlistLength;
 
         player.onPlaylist(
+            /*
+             * Fired when a new playlist has been loaded into the player.
+             * Note this event is not fired as part of the initial playlist load (playlist is loaded when onReady is called).
+             *
+             * Reset playlist variables.
+             */
             function() {
                 playlistLength = player.getPlaylist().length;
             }
         );
 
         player.onPlaylistItem(
+            /*
+             * Fired when the playlist index changes to a new playlist item.
+             * This event occurs before the player begins playing the new playlist item.
+             *
+             * Check if the shuffle mode is on.
+             * If yes,
+             * - on next button or on complete event, play a random index, not played before;
+             * - on previous button, if there is an index in memory, play it, otherwise have standard behavior.
+             * Otherwise, do nothing.
+             */
             function(evt) {
 
                 if (forceStandardBehavior) {
@@ -91,8 +107,9 @@ var shuffle_playlistItem, shuffle_setRepeatElement, shuffle_setRepeatPlaylist, s
         );
 
         player.onComplete(
+            // Fired when an item completes playback.
             function() {
-                if (repeatElement) {
+                if (repeatItem) {
                     player.seek(0);
                 } else if (lastIndices.length >= playlistLength && shuffle) {
                     // Playlist is completed under shuffle mode.
@@ -104,6 +121,7 @@ var shuffle_playlistItem, shuffle_setRepeatElement, shuffle_setRepeatPlaylist, s
                         player.playlistItem(0);
                     }
                 } else if (player.getPlaylistIndex() >= (playlistLength - 1) && (!shuffle && repeatPlaylist || shuffle)) {
+                    // Playlist is completed (I don't use onPlaylistComplete, there were too many bugs).
                     player.playlistItem(0);
                 }
             }
@@ -112,7 +130,7 @@ var shuffle_playlistItem, shuffle_setRepeatElement, shuffle_setRepeatPlaylist, s
         /**
          * Start playback of the playlist item at the specified index.
          *
-         * @param index int the index
+         * @param index {number} The index.
          */
         shuffle_playlistItem = function(index) {
 
@@ -131,22 +149,22 @@ var shuffle_playlistItem, shuffle_setRepeatElement, shuffle_setRepeatPlaylist, s
         };
 
         /**
-         * If no argument, toggle the repeat element mode; otherwise set it at the specified value.
+         * If no argument, toggle the repeat item mode; otherwise set it at the specified value.
          *
-         * @param newRepeatElement boolean the new repeat element value
+         * @param newRepeatItem {boolean} The new repeat item value.
          */
-        shuffle_setRepeatElement = function(newRepeatElement) {
-            if (newRepeatElement && newRepeatElement == repeatElement) {
+        shuffle_setRepeatItem = function(newRepeatItem) {
+            if (newRepeatItem && newRepeatItem == repeatItem) {
                 return;
             }
-            repeatElement = !repeatElement;
-            // console.log('repeatElement: ' + repeatElement);
+            repeatItem = !repeatItem;
+            // console.log('repeatItem: ' + repeatItem);
         };
 
         /**
          * If no argument, toggle the repeat playlist mode; otherwise set it at the specified value.
          *
-         * @param newRepeatPlaylist boolean the new repeat playlist value
+         * @param newRepeatPlaylist {boolean} The new repeat playlist value.
          */
         shuffle_setRepeatPlaylist = function(newRepeatPlaylist) {
             if (newRepeatPlaylist && newRepeatPlaylist == repeatPlaylist) {
@@ -160,7 +178,7 @@ var shuffle_playlistItem, shuffle_setRepeatElement, shuffle_setRepeatPlaylist, s
          * If no argument, toggle the shuffle mode; otherwise set it at the specified value.
          * Empty the array related to the indices to remember.
          *
-         * @param newShuffle boolean the new shuffle value
+         * @param newShuffle {boolean} The new shuffle value.
          */
         shuffle_setShuffle = function(newShuffle) {
             if (newShuffle && newShuffle == shuffle) {

@@ -11,16 +11,23 @@ On previous song, play the last index in memory. If there is no more, have stand
 Configuration options:
 
 - `autostart`: Check if the player will auto start. Default is `false`.
-- `repeatelement`: Check if the player will repeat the element (song / video). Default is `false`.
+- `repeatitem`: Check if the player will repeat the item. Default is `false`.
 - `repeatplaylist`: Check if the player will repeat the playlist. Default is `false`.
 - `shuffle`: Check if the player will shuffle. Default is `false`.
 
 Functions (they all start with `shuffle_` to avoid conflict with your code):
 
 - `shuffle_playlistItem(index)`: Start playback of the playlist item at the specified index.
-- `shuffle_setRepeatElement(newRepeatElement)`: If no argument, toggle the repeat element mode; otherwise set it at the specified value.
+    - `@param index {number}`: The index.
+
+- `shuffle_setRepeatItem(newRepeatElement)`: If no argument, toggle the repeat item mode; otherwise set it at the specified value.
+    - `@param newRepeatItem {boolean}`: The new repeat item value.
+
 - `shuffle_setRepeatPlaylist(newRepeatPlaylist)`: If no argument, toggle the repeat playlist mode; otherwise set it at the specified value.
+    - `@param newRepeatPlaylist {boolean}`: The new repeat playlist value.
+
 - `shuffle_setShuffle(newShuffle)`: If no argument, toggle the shuffle mode; otherwise set it at the specified value. Empty the array related to the indices to remember.
+    - `@param newShuffle {boolean}`: The new shuffle value.
 
 ## Using it
 
