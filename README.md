@@ -1,7 +1,6 @@
 # JWPlayer-Shuffle
 
 A [JWPlayer](http://www.jwplayer.com/) plugin to shuffle a playlist.
-It includes [JWPlayer-Repeat](https://github.com/pascale-jomedia/jwplayer-repeat).
 
 On next song, play a random index, not played before.
 On previous song, play the last index in memory. If there is no more, have standard behavior.
