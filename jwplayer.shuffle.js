@@ -3,7 +3,7 @@
  *
  * @license http://creativecommons.org/licenses/by-nc-sa/3.0/ CC BY-NC-SA 3.0
  *
- * @version 0.1
+ * @version 0.2
  */
 
 var shuffle_playlistItem, shuffle_setRepeatItem, shuffle_setRepeatPlaylist, shuffle_setShuffle;
@@ -26,7 +26,8 @@ var shuffle_playlistItem, shuffle_setRepeatItem, shuffle_setRepeatPlaylist, shuf
         var forceStandardBehavior = false,
             lastIndex = -1,
             lastIndices = [],
-            playlistLength;
+            playlistLength,
+            repeatOnPlaylistComplete = false;
 
         player.onPlaylist(
             /*
@@ -37,6 +38,7 @@ var shuffle_playlistItem, shuffle_setRepeatItem, shuffle_setRepeatPlaylist, shuf
              */
             function() {
                 playlistLength = player.getPlaylist().length;
+                lastIndices.length = 0;
             }
         );
 
@@ -106,23 +108,43 @@ var shuffle_playlistItem, shuffle_setRepeatItem, shuffle_setRepeatPlaylist, shuf
             }
         );
 
+        player.onTime(
+            // While the player is playing, this event is fired as the playback position gets updated.
+            // This may occur as frequently as 10 times per second.
+            function(evt) {
+                if (repeatItem && (evt.position + 0.1) >= evt.duration) {
+                    // Repeat the item before on complete is thrown.
+                    player.seek(0);
+                }
+            }
+        );
+
         player.onComplete(
             // Fired when an item completes playback.
             function() {
-                if (repeatItem) {
-                    player.seek(0);
-                } else if (lastIndices.length >= playlistLength && shuffle) {
+                if (lastIndices.length >= playlistLength && shuffle) {
                     // Playlist is completed under shuffle mode.
                     lastIndices.length = 0;
                     if (!repeatPlaylist) {
                         lastIndices.push(lastIndex);
                         player.stop();
                     } else if (player.getPlaylistIndex() >= (playlistLength - 1)) {
-                        player.playlistItem(0);
+                        repeatOnPlaylistComplete = true;
                     }
                 } else if (player.getPlaylistIndex() >= (playlistLength - 1) && (!shuffle && repeatPlaylist || shuffle)) {
-                    // Playlist is completed (I don't use onPlaylistComplete, there were too many bugs).
-                    player.playlistItem(0);
+                    // Playlist is completed, repeat it.
+                    repeatOnPlaylistComplete = true;
+                }
+            }
+        );
+
+        player.onPlaylistComplete(
+            // Fired when the player is done playing all items in the playlist.
+            // However, if the repeat option is set true, this is never fired.
+            function() {
+                if (repeatOnPlaylistComplete) {
+                    player.play(true);
+                    repeatOnPlaylistComplete = false;
                 }
             }
         );

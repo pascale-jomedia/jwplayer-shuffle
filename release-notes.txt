@@ -1,0 +1,8 @@
+---------------------------------------------------------------------
+Release 0.2
+---------------------------------------------------------------------
+BUG FIXES:
+* FLASH PLAYER:
+  Use related event listener to do the repeat. In Flash, the bahaviour was overridden.
+  - onTime
+  - onPlaylistComplete
